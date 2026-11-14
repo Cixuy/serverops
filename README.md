@@ -340,3 +340,7 @@ cd client && python -m ruff check .
 | 客户端安装 | `cd client && py -3 -m venv .venv && pip install -e ".[dev]"` |
 | 客户端启动 | `cd client && serverops-client` |
 | Python 测试 | `cd client && python -m pytest` |
+
+---
+
+本项目为团队协作开发，此仓库为个人整理版本，用于作品展示。
