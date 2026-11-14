@@ -1,0 +1,924 @@
+openapi: 3.0.1
+info:
+  title: 默认模块
+  description: 迭代一核心接口：用户认证、服务器注册与心跳、资源指标采集与查询、基础用户与看板管理。
+  version: 1.0.0
+tags:
+  - name: 1-认证管理
+  - name: 2-Agent接入
+  - name: 3-服务器管理
+  - name: 4-监控指标
+  - name: 5-数据大屏
+  - name: 6-用户管理
+paths:
+  /api/v1/auth/login:
+    post:
+      summary: 用户登录
+      deprecated: false
+      description: 通过账号密码登录，成功后返回 JWT Token
+      operationId: login
+      tags:
+        - 1-认证管理
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+          headers: {}
+      security: []
+  /api/v1/auth/logout:
+    post:
+      summary: 用户登出
+      deprecated: false
+      description: ''
+      operationId: logout
+      tags:
+        - 1-认证管理
+      parameters: []
+      responses:
+        '200':
+          description: 登出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          headers: {}
+      security:
+        - BearerAuth: []
+  /api/v1/servers/register:
+    post:
+      summary: Agent 注册
+      deprecated: false
+      description: Agent首次启动时调用，注册服务器基础信息并获取 server_code
+      operationId: registerServer
+      tags:
+        - 2-Agent接入
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServerRegisterRequest'
+        required: true
+      responses:
+        '200':
+          description: 注册或更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ServerRegisterResponse'
+          headers: {}
+      security:
+        - AgentTokenAuth: []
+  /api/v1/servers/heartbeat:
+    post:
+      summary: Agent 心跳上报
+      deprecated: false
+      description: Agent定时(如30秒)上报心跳，维持在线状态
+      operationId: serverHeartbeat
+      tags:
+        - 2-Agent接入
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HeartbeatRequest'
+        required: true
+      responses:
+        '200':
+          description: 心跳接收成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          headers: {}
+      security:
+        - AgentTokenAuth: []
+  /api/v1/metrics:
+    post:
+      summary: Agent 上报监控指标
+      deprecated: false
+      description: Agent定时(如5秒)上报CPU、内存、网络等时序数据
+      operationId: reportMetrics
+      tags:
+        - 2-Agent接入
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MetricsReportRequest'
+        required: true
+      responses:
+        '200':
+          description: 指标接收成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          headers: {}
+      security:
+        - AgentTokenAuth: []
+  /api/v1/servers:
+    get:
+      summary: 获取服务器列表
+      deprecated: false
+      description: 分页查询服务器列表，支持按状态和关键字筛选
+      operationId: getServerList
+      tags:
+        - 3-服务器管理
+      parameters:
+        - name: pageNum
+          in: query
+          description: 页码
+          required: false
+          example: ''
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          description: 每页数量
+          required: false
+          example: ''
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          description: '状态: 1-在线 0-离线'
+          required: false
+          example: ''
+          schema:
+            type: integer
+            enum:
+              - 0
+              - 1
+        - name: keyword
+          in: query
+          description: 搜索主机名或IP
+          required: false
+          example: ''
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/PageResultServerInfo'
+          headers: {}
+      security:
+        - BearerAuth: []
+  /api/v1/servers/{id}:
+    get:
+      summary: 获取服务器详情
+      deprecated: false
+      description: ''
+      operationId: getServerDetail
+      tags:
+        - 3-服务器管理
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          example: ''
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ServerInfo'
+          headers: {}
+      security:
+        - BearerAuth: []
+    delete:
+      summary: 删除服务器
+      deprecated: false
+      description: 移除服务器监控记录（同时清理关联的InfluxDB数据）
+      operationId: deleteServer
+      tags:
+        - 3-服务器管理
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          example: ''
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          headers: {}
+      security:
+        - BearerAuth: []
+  /api/v1/metrics/query:
+    get:
+      summary: 查询时序指标数据
+      deprecated: false
+      description: 从 InfluxDB 查询指定服务器的资源使用趋势数据
+      operationId: queryMetrics
+      tags:
+        - 4-监控指标
+      parameters:
+        - name: serverCode
+          in: query
+          description: 服务器唯一编码
+          required: true
+          example: ''
+          schema:
+            type: string
+        - name: range
+          in: query
+          description: '时间范围: 30m(30分钟), 1h(1小时), 6h(6小时), 1d(1天)'
+          required: true
+          example: ''
+          schema:
+            type: string
+            enum:
+              - 30m
+              - 1h
+              - 6h
+              - 1d
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MetricsQueryResponse'
+          headers: {}
+      security:
+        - BearerAuth: []
+  /api/v1/dashboard/summary:
+    get:
+      summary: 获取大屏统计概览
+      deprecated: false
+      description: 获取在线/离线服务器数量等全局统计数据
+      operationId: getDashboardSummary
+      tags:
+        - 5-数据大屏
+      parameters: []
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/DashboardSummary'
+          headers: {}
+      security:
+        - BearerAuth: []
+  /api/v1/users:
+    get:
+      summary: 获取用户列表
+      deprecated: false
+      description: 仅管理员可用，获取所有系统用户
+      operationId: getUserList
+      tags:
+        - 6-用户管理
+      parameters: []
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Result'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/UserInfo'
+          headers: {}
+      security:
+        - BearerAuth: []
+    post:
+      summary: 新增用户
+      deprecated: false
+      description: 仅管理员可用，创建新的操作员或管理员
+      operationId: createUser
+      tags:
+        - 6-用户管理
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+        required: true
+      responses:
+        '200':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          headers: {}
+      security:
+        - BearerAuth: []
+  /api/v1/users/{id}:
+    put:
+      summary: 修改用户
+      deprecated: false
+      description: 仅管理员可用，更新用户信息或重置密码
+      operationId: updateUser
+      tags:
+        - 6-用户管理
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          example: ''
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+        required: true
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          headers: {}
+      security:
+        - BearerAuth: []
+    delete:
+      summary: 删除用户
+      deprecated: false
+      description: 仅管理员可用，逻辑删除或物理删除用户
+      operationId: deleteUser
+      tags:
+        - 6-用户管理
+      parameters:
+        - name: id
+          in: path
+          description: ''
+          required: true
+          example: ''
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: 删除成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          headers: {}
+      security:
+        - BearerAuth: []
+components:
+  schemas:
+    Result:
+      type: object
+      description: 统一响应结构
+      properties:
+        code:
+          type: integer
+          description: '状态码: 200-成功, 其他-失败'
+          example: 200
+        message:
+          type: string
+          description: 提示信息
+          example: 操作成功
+        data:
+          type: object
+          description: 响应数据载荷
+          properties: {}
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          example: admin
+        password:
+          type: string
+          format: password
+          example: admin123
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT Token
+          example: eyJhbGciOiJIUzI1NiJ9...
+        expiresIn:
+          type: integer
+          description: 过期时间(秒)
+          example: 86400
+        userInfo:
+          $ref: '#/components/schemas/UserInfo'
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        nickname:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - OPERATOR
+    ServerRegisterRequest:
+      type: object
+      required:
+        - hostname
+        - ipAddress
+        - osType
+        - agentVersion
+      properties:
+        hostname:
+          type: string
+          description: 主机名
+          example: Web-Server-01
+        ipAddress:
+          type: string
+          description: IP地址
+          example: 192.168.1.50
+        osType:
+          type: string
+          description: 操作系统类型
+          enum:
+            - WINDOWS
+            - LINUX
+          example: WINDOWS
+        osVersion:
+          type: string
+          description: 系统详细版本号
+          example: Windows Server 2022
+        cpuInfo:
+          type: string
+          description: CPU信息
+          maxLength: 255
+          example: Intel Xeon E5-2680 v4 × 2 (28核)
+        memoryInfo:
+          type: string
+          description: 内存信息
+          maxLength: 128
+          example: 64 GB DDR4
+        diskInfo:
+          type: string
+          description: 磁盘信息
+          maxLength: 512
+          example: 500GB SSD (C:) + 2TB HDD (D:)
+        agentVersion:
+          type: string
+          description: Agent客户端版本号
+          example: 1.0.0
+    ServerRegisterResponse:
+      type: object
+      properties:
+        serverCode:
+          type: string
+          description: 服务器唯一编码，Agent需本地持久化
+          example: SRV-8F3A2B9C
+        serverId:
+          type: integer
+          format: int64
+    HeartbeatRequest:
+      type: object
+      required:
+        - serverCode
+      properties:
+        serverCode:
+          type: string
+          example: SRV-8F3A2B9C
+        timestamp:
+          type: integer
+          format: int64
+          description: 客户端时间戳(ms)
+          example: 1724133600000
+    MetricsReportRequest:
+      type: object
+      required:
+        - serverCode
+        - metrics
+      properties:
+        serverCode:
+          type: string
+          description: 服务器唯一编码
+          example: SRV-8F3A2B9C
+        hostname:
+          type: string
+          description: 主机名
+          example: Web-Server-01
+        timestamp:
+          type: integer
+          format: int64
+          description: 采集时间戳(ms)
+          example: 1724133600000
+        metrics:
+          type: object
+          required:
+            - cpuUsage
+            - memoryUsage
+            - networkInKbps
+            - networkOutKbps
+          description: 服务器基础指标（对应 server_metrics 表）
+          properties:
+            cpuUsage:
+              type: number
+              format: float
+              description: CPU使用率(%)
+              example: 45.2
+            cpuCount:
+              type: integer
+              description: CPU核心数
+              example: 8
+            memoryUsage:
+              type: number
+              format: float
+              description: 内存使用率(%)
+              example: 68.5
+            memoryUsedMb:
+              type: number
+              format: float
+              description: 已用内存(MB)
+              example: 5480
+            memoryTotalMb:
+              type: number
+              format: float
+              description: 总内存(MB)
+              example: 8192
+            networkInKbps:
+              type: number
+              format: float
+              description: 网络下行(KB/s)
+              example: 125.6
+            networkOutKbps:
+              type: number
+              format: float
+              description: 网络上行(KB/s)
+              example: 89.3
+        disks:
+          type: array
+          description: 磁盘指标列表（对应 server_disk_metrics 表，每块磁盘为一个元素）
+          items:
+            type: object
+            required:
+              - mountPoint
+              - diskUsage
+            properties:
+              mountPoint:
+                type: string
+                description: 挂载点路径
+                example: /
+              fsType:
+                type: string
+                description: 文件系统类型
+                example: ext4
+              diskReadKbps:
+                type: number
+                format: float
+                description: 磁盘读取吞吐(KB/s)
+                example: 2048.5
+              diskWriteKbps:
+                type: number
+                format: float
+                description: 磁盘写入吞吐(KB/s)
+                example: 1024.3
+              diskIopsRead:
+                type: integer
+                description: 每秒读操作数(IOPS)
+                example: 350
+              diskIopsWrite:
+                type: integer
+                description: 每秒写操作数(IOPS)
+                example: 120
+              diskUsage:
+                type: number
+                format: float
+                description: 磁盘空间使用率(%)
+                example: 72.8
+              diskUsedGb:
+                type: number
+                format: float
+                description: 已用空间(GB)
+                example: 364
+              diskTotalGb:
+                type: number
+                format: float
+                description: 总空间(GB)
+                example: 500
+    ServerInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键ID
+        serverCode:
+          type: string
+          description: 服务器唯一编码
+        hostname:
+          type: string
+          description: 主机名
+        ipAddress:
+          type: string
+          description: IP地址
+        osType:
+          type: string
+          description: 操作系统类型
+          enum:
+            - WINDOWS
+            - LINUX
+        osVersion:
+          type: string
+          description: 系统详细版本号
+        cpuInfo:
+          type: string
+          description: CPU信息
+          example: Intel Xeon E5-2680 v4 × 2 (28核)
+        memoryInfo:
+          type: string
+          description: 内存信息
+          example: 64 GB DDR4
+        diskInfo:
+          type: string
+          description: 磁盘信息
+          example: 500GB SSD (C:) + 2TB HDD (D:)
+        agentVersion:
+          type: string
+          description: Agent客户端版本号
+        status:
+          type: integer
+          description: 在线状态：1-在线 0-离线
+          enum:
+            - 0
+            - 1
+        lastHeartbeat:
+          type: string
+          format: date-time
+          description: 最后一次心跳时间
+        remark:
+          type: string
+          description: 备注信息
+        createdAt:
+          type: string
+          format: date-time
+          description: 首次注册时间
+        updatedAt:
+          type: string
+          format: date-time
+          description: 信息更新时间
+    PageResultServerInfo:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: 总记录数
+          example: 50
+        pageNum:
+          type: integer
+          example: 1
+        pageSize:
+          type: integer
+          example: 10
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServerInfo'
+    MetricsQueryResponse:
+      type: object
+      description: 时序数据查询结果
+      properties:
+        serverCode:
+          type: string
+          description: 服务器唯一编码
+        timeRange:
+          type: string
+          description: 查询时间范围
+        timestamps:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: 时间戳数组(ms)，所有指标数组与此等长对齐
+        cpuUsage:
+          type: array
+          items:
+            type: number
+          description: CPU使用率(%)
+        memoryUsage:
+          type: array
+          items:
+            type: number
+          description: 内存使用率(%)
+        networkInKbps:
+          type: array
+          items:
+            type: number
+          description: 网络下行(KB/s)
+        networkOutKbps:
+          type: array
+          items:
+            type: number
+          description: 网络上行(KB/s)
+        disks:
+          type: array
+          description: 磁盘指标列表（对应 server_disk_metrics 表，每块磁盘为一个元素）
+          items:
+            type: object
+            required:
+              - mountPoint
+              - diskUsage
+            properties:
+              fsType:
+                type: string
+                description: 文件系统类型
+                example: ext4
+              diskReadKbps:
+                type: number
+                format: float
+                description: 磁盘读取吞吐(KB/s)
+                example: 2048.5
+              diskWriteKbps:
+                type: number
+                format: float
+                description: 磁盘写入吞吐(KB/s)
+                example: 1024.3
+              diskIopsRead:
+                type: integer
+                description: 每秒读操作数(IOPS)
+                example: 350
+              diskIopsWrite:
+                type: integer
+                description: 每秒写操作数(IOPS)
+                example: 120
+              diskUsage:
+                type: number
+                format: float
+                description: 磁盘空间使用率(%)
+                example: 72.8
+              diskUsedGb:
+                type: number
+                format: float
+                description: 已用空间(GB)
+                example: 364
+              diskTotalGb:
+                type: number
+                format: float
+                description: 总空间(GB)
+                example: 500
+              mountPoint:
+                type: string
+                description: 挂载点路径
+                example: /
+          properties: {}
+    DashboardSummary:
+      type: object
+      properties:
+        totalServers:
+          type: integer
+          description: 服务器总数
+          example: 20
+        onlineServers:
+          type: integer
+          description: 在线服务器数
+          example: 18
+        offlineServers:
+          type: integer
+          description: 离线服务器数
+          example: 2
+        totalAlertsToday:
+          type: integer
+          description: 今日告警总数(迭代二启用)
+          example: 0
+        totalHealingToday:
+          type: integer
+          description: 今日自愈总数(迭代三启用)
+          example: 0
+    UserCreateRequest:
+      type: object
+      required:
+        - username
+        - password
+        - nickname
+        - role
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+        nickname:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - OPERATOR
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+    UserUpdateRequest:
+      type: object
+      properties:
+        nickname:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - OPERATOR
+        status:
+          type: integer
+          enum:
+            - 0
+            - 1
+          description: 1-启用 0-禁用
+        password:
+          type: string
+          format: password
+          description: 若不为空则重置密码
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+  responses: {}
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 前端用户登录后获取的 JWT Token
+    AgentTokenAuth:
+      type: apiKey
+      in: header
+      name: X-Agent-Token
+      description: Agent 客户端预设的静态通信 Token
+servers: []
+security: []
