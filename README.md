@@ -6,6 +6,10 @@ ServerOps（服务器智能运维平台）是一套面向主机资产、状态�
 - **frontend/**（Vue 3 · Vite）—— 数据大屏、服务器管理、服务监控、告警与自愈、用户管理等 Web 控制台。
 - **client/**（Python 3.11+）—— 部署在被监控主机上的监控客户端（Agent），采集指标并上报、上报告警、执行自愈命令。
 
+## 系统结构
+
+![系统结构](docs/architecture.svg)
+
 整体数据流：`client(Agent) 采集 → 上报告警/指标 → backend 落库并推送 → frontend 展示 & 触发告警/自愈/邮件通知/AI 分析`。
 
 ---
