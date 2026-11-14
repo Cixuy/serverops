@@ -8,7 +8,32 @@ ServerOps（服务器智能运维平台）是一套面向主机资产、状态�
 
 ## 系统结构
 
-![系统结构](docs/architecture.svg)
+```mermaid
+flowchart LR
+    subgraph CL["客户端"]
+        FE["Vue 3 控制台<br/>数据大屏 · 服务器详情 · 告警 · 自愈"]
+        AG["Python Agent<br/>指标采集 · 进程检查 · 自愈命令执行"]
+    end
+
+    subgraph SV["服务端"]
+        BE["Spring Boot backend<br/>REST /api · WebSocket 双通道"]
+        AI["AI 分析<br/>RAG 检索 · 多 Agent 编排"]
+    end
+
+    subgraph DB["存储层"]
+        MY[("MySQL<br/>服务器 · 告警 · 自愈规则")]
+        IF[("InfluxDB<br/>CPU · 内存 · 磁盘时序")]
+        MV[("Milvus<br/>运维知识库向量")]
+    end
+
+    FE <-->|REST / WebSocket| BE
+    AG -->|指标与告警上报| BE
+    BE -->|触发分析| AI
+    BE --> MY
+    BE --> IF
+    AI --> MV
+```
+
 
 整体数据流：`client(Agent) 采集 → 上报告警/指标 → backend 落库并推送 → frontend 展示 & 触发告警/自愈/邮件通知/AI 分析`。
 
