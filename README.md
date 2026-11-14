@@ -1,12 +1,5 @@
 # ServerOps 服务器智能运维平台
 
-> **关于这个仓库**：这是**团队项目**，2026 年 7–8 月开发。原始仓库在团队私有环境里，这里是把代码整理后放到个人账号做展示。
->
-> 我负责的部分：WebSocket 双通道实时推送、AI 分析链路（RAG 检索 + 智能体）、通用配置与异常处理模块，以及服务器详情页和登录页的前端实现。
->
-> **本地配置未入库**：`application-dev.yml` 和 `.env` 含数据库密码、API Key 等信息，已被 `.gitignore` 排除。仓库里只提供 `application-dev.example.yml` 和 `.env.example`，复制后自行填写。
-
-
 ServerOps（服务器智能运维平台）是一套面向主机资产、状态监控、告警通知与自愈处置的一体化运维方案，采用**前后端分离**架构：
 
 - **backend/**（Java 17 · Spring Boot 3）—— REST API、鉴权、WebSocket 实时推送、时序指标存储、邮件通知、AI 告警分析。
