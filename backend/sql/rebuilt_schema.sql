@@ -1,4 +1,4 @@
--- 由《数据库表设计文档V1.2》生成
+-- 服务运维平台建表脚本（MySQL 8）
 SET NAMES utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `sys_user` (
