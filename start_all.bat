@@ -23,7 +23,7 @@ start "SpringBoot-Backend" cmd /k "cd /d "%SCRIPT_DIR%" && call start_backend.ba
 
 echo.
 echo ============================================
-echo   ✅ 所有服务启动指令已发送
+echo   [OK] 所有服务启动指令已发送
 echo   请在弹出的独立窗口中查看各服务状态
 echo ============================================
 echo.
