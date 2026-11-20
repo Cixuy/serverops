@@ -318,6 +318,10 @@ POST /alerts/{alertId}/analyze
 - `POST /api/v1/agent/service-status/report` —— Agent 上报服务状态
 - `POST /api/v1/healing-action-logs` —— Agent 上报自愈执行日志
 - `GET/POST /api/v1/healing-rules`、`/api/v1/service-healing-bindings` —— 自愈规则管理
+- `GET/POST /api/v1/monitor-configs`、`PUT/DELETE /api/v1/monitor-configs/{id}` —— 监控配置增删改查（`PUT /{id}/status` 单独启停）
+- `GET /api/v1/agent/monitor-configs` —— Agent 拉取自己名下的监控配置
+- `GET /api/v1/notification-logs` —— 通知发送记录（按渠道/结果查询）
+- `GET /api/v1/service-status/snapshots`、`/api/v1/service-status/dashboard` —— 服务状态快照与服务大屏
 - `/api/v1/auth/login|logout`、`/api/v1/users` —— 认证与用户管理
 
 > 客户端 Agent 的详细采集、缓存重试、告警冷却、自愈执行与 WebSocket 约定见
